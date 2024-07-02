@@ -150,7 +150,7 @@ class Beam(pg.sprite.Sprite):
         self.vx, self.vy = bird.dire
         angle = math.degrees(math.atan2(-self.vy, self.vx))
         angle+=angle0
-        self.image = pg.transform.rotozoom(pg.image.load(f"fig/beam.png"), angle, 2.0)
+        self.image = pg.transform.rotozoom(pg.image.load(f"fig/beam.png"), angle, 1.5)
         self.vx = math.cos(math.radians(angle))
         self.vy = -math.sin(math.radians(angle))
         self.rect = self.image.get_rect()
@@ -275,7 +275,7 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 if key_lst[pg.K_LSHIFT]:
-                    m_beam=NeoBeam(bird,5)
+                    m_beam=NeoBeam(bird,11)
                     beams.add(m_beam.gen_beams())
                 else:
                      beams.add(Beam(bird))
