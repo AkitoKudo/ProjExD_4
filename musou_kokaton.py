@@ -253,6 +253,59 @@ class Score:
         self.image = self.font.render(f"Score: {self.value}", 0, self.color)
         screen.blit(self.image, self.rect)
 
+class Shield(pg.sprite.Sprite):
+    """
+    敵の攻撃を防ぐシールドを展開する
+    """
+    def __init__(self, bird: Bird ,life:int):
+        """
+        シールドの基本情報
+        """
+        super().__init__()
+        self.vx ,self.vy = bird.dire 
+        img = pg.Surface((20,bird.rect.height*2))
+        pg.draw.rect(img,(0,0,255),(0,0,20,bird.rect.height*2))
+        self.imgs = {
+            (+1, 0): img,  # 右
+            (+1, -1): pg.transform.rotozoom(img, 45, 1.0),  # 右上
+            (0, -1): pg.transform.rotozoom(img, 90, 1.0),  # 上
+            (-1, -1): pg.transform.rotozoom(img, -45, 1.0),  # 左上
+            (-1, 0): img,  # 左
+            (-1, +1): pg.transform.rotozoom(img, 45, 1.0),  # 左下
+            (0, +1): pg.transform.rotozoom(img, -90, 1.0),  # 下
+            (+1, +1): pg.transform.rotozoom(img, -45, 1.0),  # 右下
+        }
+        self.image = self.imgs[bird.dire]
+        self.image.set_colorkey((0, 0, 0))
+        self.rect = self.image.get_rect()
+        self.rect.centery = bird.rect.centery+bird.rect.height*self.vy
+        self.rect.centerx = bird.rect.centerx+bird.rect.width*self.vx
+        self.life = life
+
+    def update(self ,bird: Bird ,key_lst: list[bool]):
+        """
+        shieldをこうかとんの位置に基づき移動させる
+        引数 screen：画面Surface
+        """
+        self.life -= 1
+        sum_mv = [0, 0]
+        for k, mv in bird.delta.items():
+            if key_lst[k]:
+                sum_mv[0] += mv[0]
+                sum_mv[1] += mv[1]
+        self.rect.move_ip(bird.speed*sum_mv[0], bird.speed*sum_mv[1])
+        if check_bound(bird.rect) != (True, True):
+            self.rect.move_ip(-self.speed*sum_mv[0], -self.speed*sum_mv[1])
+        if not (sum_mv[0] == 0 and sum_mv[1] == 0):
+            self.vx ,self.vy = bird.dire
+            self.image = self.imgs[bird.dire]
+            self.image.set_colorkey((0, 0, 0))
+            self.rect = self.image.get_rect()
+            self.rect.centery = bird.rect.centery+bird.rect.height*self.vy
+            self.rect.centerx = bird.rect.centerx+bird.rect.width*self.vx
+        if self.life == 0:
+            self.kill()
+
 
 class Gravity(pg.sprite.Sprite):
     """
@@ -286,6 +339,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    shields = pg.sprite.Group()
     gravitys = pg.sprite.Group()
 
     tmr = 0
@@ -296,6 +350,10 @@ def main():
             if event.type == pg.QUIT:
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                beams.add(Beam(bird))
+            if event.type == pg.KEYDOWN and event.key == pg.K_c and len(shields) == 0 and score.value >= 50:
+                shields.add(Shield(bird,400))
+                score.value -= 50
                 if key_lst[pg.K_LSHIFT]:
                     m_beam=NeoBeam(bird,11)
                     beams.add(m_beam.gen_beams())
@@ -326,6 +384,9 @@ def main():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
             score.value += 1  # 1点アップ
 
+        for bomb in pg.sprite.groupcollide(bombs, shields, True, False).keys():
+            exps.add(Explosion(bomb, 50))  # 爆発エフェクト
+
         if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:
             bird.change_img(8, screen) # こうかとん悲しみエフェクト
             score.update(screen)
@@ -352,6 +413,8 @@ def main():
         exps.update()
         exps.draw(screen)
         score.update(screen)
+        shields.update(bird,key_lst)
+        shields.draw(screen)
         gravitys.update()
         gravitys.draw(screen)
         pg.display.update()
