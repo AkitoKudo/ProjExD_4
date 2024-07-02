@@ -314,11 +314,11 @@ def main():
             time.sleep(2)
             return
         
-        for emy in pg.sprite.groupcollide(emys, gravitys, True, False).keys():
+        for emy in pg.sprite.groupcollide(emys, gravitys, True, False).keys(): # 敵との衝突判定
             exps.add(Explosion(emy, 50))  # 爆発エフェクト
             
 
-        for bomb in pg.sprite.groupcollide(bombs, gravitys, True, False).keys():
+        for bomb in pg.sprite.groupcollide(bombs, gravitys, True, False).keys(): # 爆弾との衝突判定
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
             
 
