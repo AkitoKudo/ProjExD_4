@@ -349,11 +349,11 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return 0
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                beams.add(Beam(bird))
             if event.type == pg.KEYDOWN and event.key == pg.K_c and len(shields) == 0 and score.value >= 50:
                 shields.add(Shield(bird,400))
                 score.value -= 50
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                beams.add(Beam(bird))
                 if key_lst[pg.K_LSHIFT]:
                     m_beam=NeoBeam(bird,11)
                     beams.add(m_beam.gen_beams())
